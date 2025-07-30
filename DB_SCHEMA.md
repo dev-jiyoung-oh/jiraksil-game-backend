@@ -2,13 +2,15 @@
 # jiraksil_game 데이터베이스 설계
 
 ## 1. WAKE_UP_MISSION_GAMES (기상 미션 게임)
-| 컬럼명       | 타입        | 필수 | 고유 | 설명                         |
-|--------------|-------------|------|------|------------------------------|
-| id           | BIGINT      | Y    | Y    | 게임 ID (PK)                 |
-| wake_up_time | DATETIME    | N    |      | 기상 시간                     |
-| contacts     | JSON        | N    |      | 연락처 목록                   |
-| password_hash| VARCHAR(255)| Y    |      | 비밀번호 해시                 |
-| created_at   | DATETIME    | Y    |      | 생성 시간                     |
+| 컬럼명       | 타입           | 필수 | 고유 | 설명                         |
+|--------------|---------------|------|------|------------------------------|
+| id           | BIGINT        | Y    | Y    | 게임 ID (PK)                 |
+| code         | VARCHAR(255)  | Y    | Y    | 게임 코드 (외부 노출용)        |
+| wake_up_time | DATETIME      | N    |      | 기상 시간                     |
+| contacts     | VARCHAR(1000) | N    |      | 연락처 목록(쉼표 구분 문자열)  |
+| password_hash| VARCHAR(255)  | Y    |      | 비밀번호 해시                 |
+| created_at   | DATETIME      | Y    |      | 생성 시간                     |
+| updated_at   | DATETIME      |      |      | 수정 시간                     |
 
 ## 2. WAKE_UP_MISSION_GAME_MISSIONS (게임-미션 매핑)
 | 컬럼명          | 타입        | 필수 | 고유 | 설명                       |
