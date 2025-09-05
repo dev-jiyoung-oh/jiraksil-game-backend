@@ -1,4 +1,4 @@
-package com.jiraksilgame.dto;
+package com.jiraksilgame.wakeupmission.dto;
 
 import lombok.Getter;
 

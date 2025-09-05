@@ -1,7 +1,7 @@
-package com.jiraksilgame.dto;
+package com.jiraksilgame.wakeupmission.dto;
 
-import com.jiraksilgame.entity.WakeUpMissionGame;
-import com.jiraksilgame.entity.WakeUpMissionGameMission;
+import com.jiraksilgame.wakeupmission.entity.WakeUpMissionGame;
+import com.jiraksilgame.wakeupmission.entity.WakeUpMissionGameMission;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

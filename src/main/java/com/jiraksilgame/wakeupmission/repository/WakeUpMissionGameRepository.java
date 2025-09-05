@@ -1,6 +1,6 @@
-package com.jiraksilgame.repository;
+package com.jiraksilgame.wakeupmission.repository;
 
-import com.jiraksilgame.entity.WakeUpMissionGame;
+import com.jiraksilgame.wakeupmission.entity.WakeUpMissionGame;
 
 import java.util.Optional;
 

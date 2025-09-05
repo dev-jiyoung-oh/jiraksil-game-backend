@@ -1,4 +1,4 @@
-package com.jiraksilgame.security;
+package com.jiraksilgame.common.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

@@ -1,4 +1,4 @@
-package com.jiraksilgame.config;
+package com.jiraksilgame.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

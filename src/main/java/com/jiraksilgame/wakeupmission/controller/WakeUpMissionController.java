@@ -1,9 +1,9 @@
-package com.jiraksilgame.controller;
+package com.jiraksilgame.wakeupmission.controller;
 
-import com.jiraksilgame.dto.CreateWakeUpMissionRequest;
-import com.jiraksilgame.dto.PasswordRequest;
-import com.jiraksilgame.dto.WakeUpMissionResponse;
-import com.jiraksilgame.service.WakeUpMissionService;
+import com.jiraksilgame.wakeupmission.dto.CreateWakeUpMissionRequest;
+import com.jiraksilgame.wakeupmission.dto.PasswordRequest;
+import com.jiraksilgame.wakeupmission.dto.WakeUpMissionResponse;
+import com.jiraksilgame.wakeupmission.service.WakeUpMissionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

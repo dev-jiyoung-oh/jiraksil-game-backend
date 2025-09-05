@@ -1,6 +1,6 @@
-package com.jiraksilgame.repository;
+package com.jiraksilgame.wakeupmission.repository;
 
-import com.jiraksilgame.entity.WakeUpMissionGameMission;
+import com.jiraksilgame.wakeupmission.entity.WakeUpMissionGameMission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

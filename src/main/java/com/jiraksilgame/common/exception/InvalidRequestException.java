@@ -1,4 +1,4 @@
-package com.jiraksilgame.exception;
+package com.jiraksilgame.common.exception;
 
 public class InvalidRequestException extends RuntimeException {
     public InvalidRequestException(String message) {

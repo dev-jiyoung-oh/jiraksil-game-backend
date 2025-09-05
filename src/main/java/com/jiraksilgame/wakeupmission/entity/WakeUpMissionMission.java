@@ -1,4 +1,4 @@
-package com.jiraksilgame.entity;
+package com.jiraksilgame.wakeupmission.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
