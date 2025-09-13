@@ -112,7 +112,7 @@
 | time_used_sec   | INT                            |    |    | LIMITED 모드 소요 시간 (= duration_sec - 남은 시간) |
 | elapsed_sec     | INT                            |    |    | UNTIL_CLEAR 모드 경과 시간                    |
 
-### 11. CHARADES_TURN_ITEMS (턴 내 이벤트 로그)
+### 11. CHARADES_TURN_WORDS (턴 내 제시어)
 | 컬럼명         | 타입                     | 필수 | 고유 | 설명                          |
 | ----------- | ---------------------- | -- | -- | --------------------------- |
 | id          | BIGINT                 | Y  | Y  | 항목 ID (PK)                  |
@@ -146,8 +146,8 @@
   - CHARADES_WORDS.category_id → CHARADES_CATEGORIES.id (ON DELETE RESTRICT)
   - CHARADES_TURNS.game_id → CHARADES_GAMES.id (ON DELETE CASCADE)
   - CHARADES_TURNS.team_id → CHARADES_TEAMS.id (ON DELETE CASCADE)
-  - CHARADES_TURN_ITEMS.turn_id → CHARADES_TURNS.id (ON DELETE CASCADE)
-  - CHARADES_TURN_ITEMS.word_id → CHARADES_WORDS.id (ON DELETE SET NULL)
+  - CHARADES_TURN_WORDS.turn_id → CHARADES_TURNS.id (ON DELETE CASCADE)
+  - CHARADES_TURN_WORDS.word_id → CHARADES_WORDS.id (ON DELETE SET NULL)
 
 - UNIQUE / CHECK
   - CHARADES_TEAMS (game_id, code) UNIQUE  / code CHECK: ^[A-Z]$ (A~Z 1글자)
@@ -155,4 +155,4 @@
   - CHARADES_GAME_CATEGORIES (game_id, category_id) UNIQUE
   - CHARADES_WORDS (category_id, text) UNIQUE
   - CHARADES_TURNS (game_id, team_id, round_index) UNIQUE
-  - CHARADES_TURN_ITEMS (turn_id, idx) UNIQUE
+  - CHARADES_TURN_WORDS (turn_id, idx) UNIQUE
