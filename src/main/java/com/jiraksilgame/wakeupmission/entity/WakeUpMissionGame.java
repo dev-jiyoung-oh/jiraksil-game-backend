@@ -6,7 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "WAKE_UP_MISSION_GAMES")
@@ -41,10 +40,18 @@ public class WakeUpMissionGame {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        if (this.code == null) {
-            this.code = UUID.randomUUID().toString(); // UUID 자동 생성
-        }
+
+    public static WakeUpMissionGame create(
+        String code,
+        LocalDateTime wakeUpTime,
+        String contacts,
+        String passwordHash)
+    {
+        WakeUpMissionGame g = new WakeUpMissionGame();
+        g.setCode(code);
+        g.setWakeUpTime(wakeUpTime);
+        g.setContacts(contacts);
+        g.setPasswordHash(passwordHash);
+        return g;
     }
 }
