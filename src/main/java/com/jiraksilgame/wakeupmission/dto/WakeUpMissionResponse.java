@@ -10,13 +10,13 @@ import java.util.stream.Collectors;
 
 @Getter
 public class WakeUpMissionResponse {
-    private String id;
+    private String code;
     private LocalDateTime wakeUpTime;
     private String contacts;
     private List<MissionDto> missions;
 
     public WakeUpMissionResponse(WakeUpMissionGame game, List<WakeUpMissionGameMission> gameMissions) {
-        this.id = game.getCode();
+        this.code = game.getCode();
         this.wakeUpTime = game.getWakeUpTime();
         this.contacts = game.getContacts();
         this.missions = gameMissions.stream()
