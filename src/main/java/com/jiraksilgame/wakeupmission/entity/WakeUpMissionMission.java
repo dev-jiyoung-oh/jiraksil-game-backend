@@ -3,6 +3,7 @@ package com.jiraksilgame.wakeupmission.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+/** 기상 미션 - 미션 엔티티 */
 @Entity
 @Table(name = "WAKE_UP_MISSION_MISSIONS")
 @Getter

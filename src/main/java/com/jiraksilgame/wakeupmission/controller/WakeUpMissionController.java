@@ -12,7 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-// 기상 미션 게임
+/**
+ * 기상 미션 컨트롤러
+ */
 @Validated
 @RestController
 @RequestMapping("/api/wake-up-mission")
@@ -21,13 +23,24 @@ public class WakeUpMissionController {
 
     private final WakeUpMissionService wakeUpMissionService;
 
-    // 게임 생성
+    /**
+     * 기상 미션 생성
+     * 
+     * @param req 생성 요청
+     * @return 게임 정보
+     */
     @PostMapping
-    public ResponseEntity<?> createGame(@Valid @RequestBody CreateWakeUpMissionRequest req) {
+    public ResponseEntity<WakeUpMissionResponse> createGame(@Valid @RequestBody CreateWakeUpMissionRequest req) {
         return ResponseEntity.ok(wakeUpMissionService.createGame(req));
     }
 
-    // 게임 조회
+    /**
+     * 비밀번호 인증 후 게임 조회
+     * 
+     * @param gameCode 게임 코드
+     * @param req 비밀번호 요청
+     * @return 게임 정보
+     */
     @PostMapping("/{gameCode}")
     public ResponseEntity<WakeUpMissionResponse> getGameByIdWithPassword(
             @PathVariable @GameCode String gameCode,

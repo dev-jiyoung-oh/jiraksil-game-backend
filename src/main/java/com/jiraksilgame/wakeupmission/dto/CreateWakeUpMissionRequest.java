@@ -10,6 +10,9 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+/**
+ * 기상 미션 생성 요청 DTO
+ */
 @Getter
 public class CreateWakeUpMissionRequest {
 

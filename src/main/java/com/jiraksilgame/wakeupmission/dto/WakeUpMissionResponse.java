@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/** 기상 미션 조회 응답 DTO */
 @Getter
 public class WakeUpMissionResponse {
     private String code;
@@ -24,6 +25,7 @@ public class WakeUpMissionResponse {
                 .collect(Collectors.toList());
     }
 
+    /** 배정된 미션 정보 DTO */
     @Getter
     public static class MissionDto {
         private final String content;

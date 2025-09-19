@@ -7,6 +7,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * 기상 미션 - 게임 엔티티
+ */
 @Entity
 @Table(name = "WAKE_UP_MISSION_GAMES")
 @Getter
@@ -40,7 +43,15 @@ public class WakeUpMissionGame {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
+    /**
+     * 새 게임 엔티티 생성
+     * 
+     * @param code 외부 노출용 코드
+     * @param wakeUpTime 기상 시각
+     * @param contacts 연락처
+     * @param passwordHash 비밀번호 해시
+     * @return 초기화된 엔티티
+     */
     public static WakeUpMissionGame create(
         String code,
         LocalDateTime wakeUpTime,

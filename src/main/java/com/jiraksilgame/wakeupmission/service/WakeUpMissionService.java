@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 기상 미션 서비스
+ */
 @Service
 @RequiredArgsConstructor
 public class WakeUpMissionService {
@@ -34,7 +37,15 @@ public class WakeUpMissionService {
     private final WakeUpMissionGameMissionRepository gameMissionRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    // 게임 생성
+    /** 고유 코드로 게임 생성 및 저장
+     * <p><b>참고</b>: 코드 유니크 충돌 시 새 코드를 생성해 최대 3회까지 재시도</p>
+     * 
+     *  @param wakeUpTime 기상 시각
+     *  @param contacts 연락처
+     *  @param passwordHash 비밀번호 해시
+     *  @return 저장된 게임 엔티티
+     *  @throws AppException 저장 실패 시
+     */
     private WakeUpMissionGame createWithUniqueCode(LocalDateTime wakeUpTime, String contacts, String passwordHash) {
         for (int attempt = 0; attempt < 3; attempt++) {
             String code = CodeGenerator.randomCode(CommonConstants.GAME_CODE_LENGTH);
@@ -53,8 +64,13 @@ public class WakeUpMissionService {
         throw AppException.internal("게임 생성에 실패했습니다."); // 방어적 코드
     }
 
-    // 기상 시간 계산
-    // 입력하신 시간 기준으로 해당 시간이 지나지 않았다면 오늘, 이미 지난 시간이면 내일
+    /**
+     * HH:mm 입력을 기준으로 기상 시각 계산
+     * <p><b>참고</b>: 입력 시각이 현재보다 이르면 익일로 설정, 입력이 null이면 null 반환</p>
+     * 
+     * @param wakeUpTime 기상 시각 HH:mm, null 가능
+     * @return 계산된 기상 시각 또는 null
+     */
     private LocalDateTime calculateWakeUpDateTime(LocalTime wakeUpTime) {
         if (wakeUpTime == null) {
             return null;
@@ -63,7 +79,7 @@ public class WakeUpMissionService {
         LocalDate today = LocalDate.now();
         LocalDateTime candidate = LocalDateTime.of(today, wakeUpTime);
 
-        // 현재 시간이 이미 지난 경우, 다음 날로 설정
+        // 입력 시각이 현재보다 이르면 익일로 설정
         if (candidate.isBefore(LocalDateTime.now())) {
             candidate = candidate.plusDays(1);
         }
@@ -73,7 +89,13 @@ public class WakeUpMissionService {
 
     // ========= API 로직 =========
 
-    // 게임 생성
+    /**
+     * 게임 생성
+     * 
+     * @param req 생성 요청
+     * @return 생성 결과
+     * @throws AppException 미션 수 부족 등 검증 실패 시
+     */
     @Transactional
     public WakeUpMissionResponse createGame(CreateWakeUpMissionRequest req) {
         // 데이터 검증
@@ -111,7 +133,14 @@ public class WakeUpMissionService {
         return new WakeUpMissionResponse(game, gameMissions);
     }
 
-    // 게임 조회
+    /**
+     * 비밀번호 인증 후 게임 조회
+     * 
+     * @param code 게임 코드
+     * @param password 비밀번호
+     * @return 게임 정보
+     * @throws AppException 인증 실패 시
+     */
     public WakeUpMissionResponse getGameByCodeWithPassword(String code, String password) {
         WakeUpMissionGame game = gameRepository.findByCode(code)
                 .orElse(null);

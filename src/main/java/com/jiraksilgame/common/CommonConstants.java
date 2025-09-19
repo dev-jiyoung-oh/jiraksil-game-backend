@@ -1,6 +1,8 @@
 package com.jiraksilgame.common;
 
-/** 공통 상수 */
+/**
+ * 공통 상수
+ */
 public final class CommonConstants {
   private CommonConstants() {}
 
