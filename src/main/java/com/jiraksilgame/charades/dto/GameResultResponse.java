@@ -8,6 +8,6 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class GameResultResponse {
-    private String gameCode;
-    private List<GameSnapshotResponse.TeamDto> teams;
+    private String code;
+    private List<TeamDto> teams;
 }

@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class GameSnapshotResponse {
-    private String gameCode;
+    private String code;
     private GameMode mode;
     private Integer durationSec;
     private Integer targetCount;
@@ -21,16 +21,6 @@ public class GameSnapshotResponse {
     private GameStatus status;
     private List<TeamDto> teams;
     private CurrentDto current;
-
-    @Getter @AllArgsConstructor
-    public static class TeamDto {
-        private String code;
-        private String name;
-        private String color;
-        private String colorHex;
-        private Integer score;
-        private Integer orderIndex;
-    }
 
     @Getter @AllArgsConstructor
     public static class CurrentDto {

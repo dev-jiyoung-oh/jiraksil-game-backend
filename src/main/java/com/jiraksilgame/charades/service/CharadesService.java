@@ -43,8 +43,8 @@ public class CharadesService {
 
     // ========= 유틸(로컬 헬퍼) =========
 
-    private static GameSnapshotResponse.TeamDto toTeamDto(CharadesTeam t) {
-        return new GameSnapshotResponse.TeamDto(
+    private static TeamDto toTeamDto(CharadesTeam t) {
+        return new TeamDto(
                 t.getCode(),
                 t.getName(),
                 t.getColor(),
@@ -167,12 +167,12 @@ public class CharadesService {
         boolean finished = teams.stream().allMatch(t -> counts.getOrDefault(t.getId(), 0) >= game.getRoundsPerTeam());
         GameStatus status = finished ? GameStatus.FINISHED : game.getStatus();
 
-        List<GameSnapshotResponse.TeamDto> teamDtos = teams.stream()
+        List<TeamDto> teamDtos = teams.stream()
                 .map(CharadesService::toTeamDto)
                 .toList();
 
         return GameSnapshotResponse.builder()
-                .gameCode(game.getCode())
+                .code(game.getCode())
                 .mode(game.getMode())
                 .durationSec(game.getDurationSec())
                 .targetCount(game.getTargetCount())
@@ -278,7 +278,7 @@ public class CharadesService {
     }
     @Transactional(readOnly = true)
     public GameResultResponse getResult(CharadesGame game) {
-        List<GameSnapshotResponse.TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
+        List<TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
                 .stream()
                 .map(CharadesService::toTeamDto)
                 .toList();
