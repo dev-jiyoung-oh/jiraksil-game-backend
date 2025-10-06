@@ -70,6 +70,12 @@ public class CharadesService {
     }
     
     // ========= 내부 로직 =========
+    
+    // 사용 가능한 카테고리 목록 조회
+    @Transactional(readOnly = true)
+    public List<CharadesCategory> getActiveCategories() {
+        return categoryRepo.findByIsActiveTrue();
+    }
 
     // 게임 code로 조회
     private CharadesGame getGameByCodeOrThrow(String code) {

@@ -1,6 +1,7 @@
 package com.jiraksilgame.charades.controller;
 
 import com.jiraksilgame.charades.dto.*;
+import com.jiraksilgame.charades.entity.CharadesCategory;
 import com.jiraksilgame.charades.service.CharadesService;
 import com.jiraksilgame.common.validation.GameCode;
 
@@ -26,6 +27,20 @@ public class CharadesController {
 
     private final CharadesService service;
 
+    
+    /**
+     * 카테고리 목록 조회
+     * @return 카테고리 리스트
+     */
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryResponse>> getCategories() {
+        List<CharadesCategory> categories = service.getActiveCategories();
+        List<CategoryResponse> response = categories.stream()
+            .map(c -> new CategoryResponse(c.getCode(), c.getName()))
+            .toList();
+        return ResponseEntity.ok(response);
+    }
+    
     /**
      * 게임 생성
      *
