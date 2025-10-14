@@ -207,7 +207,7 @@ public class CharadesService {
         List<WordDto> words = wordRepo
                 .findBatch(catIds, excludeEmpty ? List.of() : exclude, excludeEmpty, page)
                 .stream()
-                .map(w -> new WordDto(w.getId(), w.getText()))
+                .map(w -> new WordDto(w.getId(), w.getText(), w.getDescription()))
                 .toList();
 
         return new WordBatchResponse(words);

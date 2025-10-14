@@ -27,6 +27,9 @@ public class CharadesWord {
     @Column(name = "text", nullable = false, length = 255)
     private String text;
 
+    @Column(name = "description", length = 255)
+    private String description;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 

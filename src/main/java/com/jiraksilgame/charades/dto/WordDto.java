@@ -8,4 +8,5 @@ import lombok.Getter;
 public class WordDto {
     private Long id;
     private String text;
+    private String description;
 }
