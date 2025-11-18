@@ -54,14 +54,14 @@ public class CharadesController {
     }
 
     /**
-     * 게임 스냅샷 조회
+     * 게임 정보 상세 조회
      *
      * @param gameCode 게임 코드
-     * @return 게임의 현재 상태
+     * @return 게임 상세 정보
      */
     @GetMapping("/{gameCode}")
-    public ResponseEntity<GameSnapshotResponse> getSnapshot(@PathVariable @GameCode String gameCode) {
-        return ResponseEntity.ok(service.getSnapshotByCode(gameCode));
+    public ResponseEntity<GameDetailResponse> getGameDetail(@PathVariable @GameCode String gameCode) {
+        return ResponseEntity.ok(service.getGameDetailByCode(gameCode));
     }
 
     /**

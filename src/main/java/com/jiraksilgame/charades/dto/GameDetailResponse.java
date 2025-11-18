@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-public class GameSnapshotResponse {
+public class GameDetailResponse {
     private String code;
     private GameMode mode;
     private Integer durationSec;

@@ -140,14 +140,14 @@ public class CharadesService {
         return new CreateGameResponse(game, teams);
     }
 
-    // 스냅샷(현재 게임의 요약 상태) 조회
+    // 게임 정보 상세 조회
     @Transactional(readOnly = true)
-    public GameSnapshotResponse getSnapshotByCode(String code) {
+    public GameDetailResponse getGameDetailByCode(String code) {
         CharadesGame game = getGameByCodeOrThrow(code);
-        return getSnapshot(game);
+        return getGameDetail(game);
     }
     @Transactional(readOnly = true)
-    public GameSnapshotResponse getSnapshot(CharadesGame game) {
+    public GameDetailResponse getGameDetail(CharadesGame game) {
         Long gameId = game.getId();
 
         List<CharadesTeam> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(gameId);
@@ -165,7 +165,7 @@ public class CharadesService {
                 .map(TeamDto::fromEntity)
                 .toList();
 
-        return GameSnapshotResponse.builder()
+        return GameDetailResponse.builder()
                 .code(game.getCode())
                 .mode(game.getMode())
                 .durationSec(game.getDurationSec())
@@ -174,7 +174,7 @@ public class CharadesService {
                 .roundsPerTeam(game.getRoundsPerTeam())
                 .status(status)
                 .teams(teamDtos)
-                .current(new GameSnapshotResponse.CurrentDto(p.teamIdx, p.roundIdx))
+                .current(new GameDetailResponse.CurrentDto(p.teamIdx, p.roundIdx))
                 .build();
     }
 
