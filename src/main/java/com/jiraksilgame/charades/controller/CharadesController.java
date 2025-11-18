@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -81,18 +82,18 @@ public class CharadesController {
     }
 
     /**
-     * 턴 종료 처리
+     * 게임 종료 후 전체 플레이 일괄 저장
      *
      * @param gameCode 게임 코드
-     * @param req 턴 종료 요청 정보
-     * @return 최신 스냅샷 정보
+     * @param req 전체 턴 및 단어 기록을 담은 요청 정보
      */
-    @PostMapping("/{gameCode}/turns/finalize")
-    public ResponseEntity<GameSnapshotResponse> finalizeTurn(
+    @PostMapping("/{gameCode}/finalize")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void finalizeGame(
             @PathVariable @GameCode String gameCode,
-            @Valid @RequestBody FinalizeTurnRequest req
+            @Valid @RequestBody FinalizeGameRequest req
     ) {
-        return ResponseEntity.ok(service.finalizeTurnByCode(gameCode, req));
+        service.finalizeGameByCode(gameCode, req);
     }
 
     /**

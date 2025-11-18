@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CharadesTeamRepository extends JpaRepository<CharadesTeam, Long> {
+    List<CharadesTeam> findByGameId(Long gameId);
     List<CharadesTeam> findByGameIdOrderByOrderIndexAsc(Long gameId);
 }

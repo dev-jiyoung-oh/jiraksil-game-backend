@@ -1,18 +1,19 @@
 package com.jiraksilgame.charades.dto;
 
-import com.jiraksilgame.charades.entity.enums.GameMode;
-
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor
 public class FinalizeTurnRequest {
-    private GameMode mode;
+    private String teamCode;
+
+    private Integer roundIndex;
 
     @NotNull
     @Min(0)
@@ -30,5 +31,9 @@ public class FinalizeTurnRequest {
     @Max(1000)
     private Integer elapsedSec;  // UNTIL_CLEAR
 
-    private List<TurnWordRequest> turnWords;
+    private LocalDateTime startedAt;
+    
+    private LocalDateTime endedAt;
+
+    private List<TurnWordRequest> words;
 }

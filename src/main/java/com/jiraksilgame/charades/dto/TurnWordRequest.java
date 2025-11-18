@@ -11,6 +11,6 @@ public class TurnWordRequest {
     private Integer idx;
     private Long wordId;
     private String wordText;
-    private TurnAction action; // CORRECT / PASS
+    private TurnAction action;
     private Integer atSec;
 }

@@ -70,7 +70,7 @@ public class CharadesTurn {
     private Integer elapsedSec;  // UNTIL_CLEAR
 
 
-    /** 게임/팀/라운드 스냅샷으로 턴 생성 (결과 적용 전) */
+    /** 턴 생성 (결과 적용 전) */
     public static CharadesTurn create(CharadesGame game, CharadesTeam team, int roundIdx) {
         Objects.requireNonNull(game, "game must not be null");
         Objects.requireNonNull(team, "team must not be null");
@@ -92,41 +92,24 @@ public class CharadesTurn {
         return t;
     }
 
-    /** 결과까지 한 번에 적용해서 생성하고 싶을 때 (오버로드) */
-    public static CharadesTurn create(
-            CharadesGame game,
-            CharadesTeam team,
-            int roundIdx,
-            TurnOutcome out,
-            LocalDateTime now
-    ) {
-        CharadesTurn t = create(game, team, roundIdx);
-        t.applyOutcome(out, now);
-        return t;
-    }
-
     /** 결과(시간/카운트) 적용 */
-    public void applyOutcome(TurnOutcome out, LocalDateTime now) {
+    public void applyOutcome(TurnOutcome out, LocalDateTime startedAt, LocalDateTime endedAt) {
         if (out == null) return;
 
-        if (this.getMode() == GameMode.LIMITED) { // LIMITED
-            Integer used = out.getTimeUsedSec();
+        // 1) 시간 저장 (프론트 값 그대로)
+        this.setStartedAt(startedAt);
+        this.setEndedAt(endedAt);
 
-            if (used != null && used > 0) {
-                this.setStartedAt(now.minusSeconds(used));
-                this.setEndedAt(now);
-                this.setTimeUsedSec(used);
-            }
-        } else { // UNTIL_CLEAR
-            Integer el = out.getElapsedSec();
-
-            if (el != null && el > 0) {
-                this.setStartedAt(now.minusSeconds(el));
-                this.setEndedAt(now);
-                this.setElapsedSec(el);
-            }
+        // 2) 모드별 추가 필드
+        if (this.getMode() == GameMode.LIMITED) {
+            this.setTimeUsedSec(out.getTimeUsedSec());   // LIMITED 전용
+            this.setElapsedSec(null);
+        } else {
+            this.setElapsedSec(out.getElapsedSec());     // UNTIL_CLEAR 전용
+            this.setTimeUsedSec(null);
         }
 
+        // 3) 정답/패스 카운트
         this.setCorrectCount(out.getCorrectCount());
         this.setUsedPass(out.getUsedPass());
     }

@@ -1,6 +1,5 @@
 package com.jiraksilgame.charades.service;
 
-import com.jiraksilgame.charades.domain.TeamColor;
 import com.jiraksilgame.charades.domain.TurnOutcome;
 import com.jiraksilgame.charades.dto.*;
 import com.jiraksilgame.charades.entity.*;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,17 +40,6 @@ public class CharadesService {
 
 
     // ========= 유틸(로컬 헬퍼) =========
-
-    private static TeamDto toTeamDto(CharadesTeam t) {
-        return new TeamDto(
-                t.getCode(),
-                t.getName(),
-                t.getColor(),
-                TeamColor.hexOf(t.getColor()),
-                t.getScore(),
-                t.getOrderIndex()
-        );
-    }
 
     private static final class Pointer {
         final int teamIdx, roundIdx;
@@ -129,10 +116,11 @@ public class CharadesService {
         if (names.size() > CharadesConstants.MAX_TEAMS) {
             throw AppException.badRequest("Too many teams: max " + CharadesConstants.MAX_TEAMS + " (A~Z)");
         }
+        List<CharadesTeam> teams = new ArrayList<>();
         for (int i = 0; i < names.size(); i++) {
-            CharadesTeam t = CharadesTeam.create(game, i, names.get(i));
-            teamRepo.save(t);
+            teams.add(CharadesTeam.create(game, i, names.get(i)));
         }
+        teamRepo.saveAll(teams);
 
         // 3) 카테고리 매핑: 빈/ALL → 전체 활성화
         List<String> codes = opt.getCategoryCodes();
@@ -149,7 +137,7 @@ public class CharadesService {
                 .toList();
         gameCategoryRepo.saveAll(links);
 
-        return new CreateGameResponse(game.getCode());
+        return new CreateGameResponse(game, teams);
     }
 
     // 스냅샷(현재 게임의 요약 상태) 조회
@@ -174,7 +162,7 @@ public class CharadesService {
         GameStatus status = finished ? GameStatus.FINISHED : game.getStatus();
 
         List<TeamDto> teamDtos = teams.stream()
-                .map(CharadesService::toTeamDto)
+                .map(TeamDto::fromEntity)
                 .toList();
 
         return GameSnapshotResponse.builder()
@@ -213,67 +201,87 @@ public class CharadesService {
         return new WordBatchResponse(words);
     }
 
-    // 턴 종료(저장)
-    public GameSnapshotResponse finalizeTurnByCode(String code, FinalizeTurnRequest req) {
+    // 전체 플레이 일괄 저장
+    public void finalizeGameByCode(String code, FinalizeGameRequest req) {
         CharadesGame game = getGameByCodeOrThrow(code);
-        return finalizeTurn(game, req);
+        finalizeGame(game, req);
     }
-    public GameSnapshotResponse finalizeTurn(CharadesGame game, FinalizeTurnRequest req) {
-        // 1) 턴 저장
-        Long gameId = game.getId();
-        List<CharadesTeam> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(gameId);
-
-        // 팀별 완료 턴 수
-        Map<Long,Integer> counts = turnRepo.countByTeam(gameId).stream()
-                .collect(Collectors.toMap(arr -> (Long)arr[0], arr -> ((Long)arr[1]).intValue()));
-        
-        Pointer p = nextPointer(teams, counts);
-        if (p.roundIdx >= game.getRoundsPerTeam()) {
-            return getSnapshot(game); // 이미 모든 라운드 완료
+    public void finalizeGame(CharadesGame game, FinalizeGameRequest req) {
+        // 1) 게임이 이미 FINISHED 상태인지 체크
+        if (game.getStatus() == GameStatus.FINISHED) {
+            throw AppException.badRequest("Game already finalized");
         }
 
-        CharadesTeam team = teams.get(p.teamIdx);
+        // 2) 팀 조회 (빠른 접근 위한 Map 생성)
+        List<CharadesTeam> teams = teamRepo.findByGameId(game.getId());
+        Map<String, CharadesTeam> teamMap = teams.stream().collect(Collectors.toMap(CharadesTeam::getCode, t -> t));
 
-        LocalDateTime now = LocalDateTime.now();
-        TurnOutcome outcome = TurnOutcome.of(
-                game.getMode(),
-                req.getTimeUsedSec(),
-                req.getElapsedSec(),
-                req.getCorrectCount(),
-                req.getUsedPass()
-        );
+        // 3) 모든 턴 기록 저장
+        Map<String, Integer> totalScores = new HashMap<>(); // 팀별 총 점수 누적용
+        for (FinalizeTurnRequest turnReq : req.getTurns()) {
 
-        CharadesTurn turn = CharadesTurn.create(game, team, p.roundIdx, outcome, now);
-        
-        // 동시성: 같은 턴이 중복 저장될 수 있으니 예외 시 최신 스냅샷 반환
-        try {
-            turnRepo.saveAndFlush(turn);
-        } catch (DataIntegrityViolationException e) {
-            return getSnapshot(game);
-        }
-
-        // 2) 턴 내 제시어 저장
-        if (req.getTurnWords() != null) {
-            int auto = 0;
-            List<CharadesTurnWord> words = new ArrayList<>(req.getTurnWords().size());
-            for (TurnWordRequest tw : req.getTurnWords()) {
-                words.add(CharadesTurnWord.create(turn, tw, ++auto, now));
+            // 팀 검증
+            CharadesTeam team = teamMap.get(turnReq.getTeamCode());
+            if (team == null) {
+                throw AppException.badRequest("Invalid teamCode: " + turnReq.getTeamCode());
             }
-            turnWordRepo.saveAll(words);
+
+            // 4-1) 기본 Turn 생성
+            CharadesTurn turn = CharadesTurn.create(
+                    game,
+                    team,
+                    turnReq.getRoundIndex()
+            );
+
+            // 4-2) TurnOutcome 생성
+            TurnOutcome outcome = TurnOutcome.of(
+                    game.getMode(),
+                    turnReq.getTimeUsedSec(),
+                    turnReq.getElapsedSec(),
+                    turnReq.getCorrectCount(),
+                    turnReq.getUsedPass()
+            );
+
+            // 4-3) 결과 반영
+            turn.applyOutcome(outcome, turnReq.getStartedAt(), turnReq.getEndedAt());
+
+            turnRepo.save(turn);
+
+            // 4-4) TurnWord 전체 저장
+            int fallbackIdx = 0;
+
+            for (TurnWordRequest wReq : turnReq.getWords()) {
+                CharadesTurnWord tw = new CharadesTurnWord();
+                tw.setTurn(turn);
+                          
+                tw.setIdx(wReq.getIdx() != null ? wReq.getIdx() : fallbackIdx++);
+                tw.setWordText(wReq.getWordText());
+                tw.setAction(wReq.getAction());
+                tw.setAtSec(wReq.getAtSec());
+
+                if (wReq.getWordId() != null) {
+                    CharadesWord cw = new CharadesWord();
+                    cw.setId(wReq.getWordId());
+                    tw.setWord(cw);
+                }
+
+                turnWordRepo.save(tw);
+            }
+
+            // 4-5) 팀 점수 누적
+            totalScores.merge(team.getCode(), turnReq.getCorrectCount(), Integer::sum);
         }
 
-        // 3) 팀 스코어 갱신
-        team.setScore(team.getScore() + turn.getCorrectCount());
+        // 5) 팀 엔티티에도 최종 점수 반영
+        for (CharadesTeam team : teams) {
+            int score = totalScores.getOrDefault(team.getCode(), 0);
+            team.setScore(score);
+            teamRepo.save(team);
+        }
 
-        // 4) 게임 상태 변경(FINISHED/INTERMISSION)
-        boolean finished = teams.stream().allMatch(t ->
-                (counts.getOrDefault(t.getId(), 0) + (t.getId().equals(team.getId()) ? 1 : 0))
-                 >= game.getRoundsPerTeam()
-        );
-        game.setStatus(finished ? GameStatus.FINISHED : GameStatus.INTERMISSION);
-        game.setUpdatedAt(now);
-
-        return getSnapshot(game);
+        // 6) 게임 상태 FINISHED 설정
+        game.setStatus(GameStatus.FINISHED);
+        gameRepo.save(game);
     }
 
     // 결과 조회
@@ -286,7 +294,7 @@ public class CharadesService {
     public GameResultResponse getResult(CharadesGame game) {
         List<TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
                 .stream()
-                .map(CharadesService::toTeamDto)
+                .map(TeamDto::fromEntity)
                 .toList();
         return new GameResultResponse(game.getCode(), teams);
     }
