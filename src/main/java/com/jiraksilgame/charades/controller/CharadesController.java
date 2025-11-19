@@ -65,20 +65,20 @@ public class CharadesController {
     }
 
     /**
-     * 단어 배치(조회)
+     * 랜덤 단어 배치 조회
      *
      * @param gameCode 게임 코드
      * @param limit 반환할 단어 수 (기본 300, 최대 1000)
-     * @param exclude 제외할 단어 ID 목록
-     * @return 단어 리스트
+     * @param exclude 제외할 단어 ID 목록 (선택)
+     * @return 랜덤 단어 리스트
      */
-    @GetMapping("/{gameCode}/words")
-    public ResponseEntity<WordBatchResponse> getWords(
+    @GetMapping("/{gameCode}/word-batch")
+    public ResponseEntity<WordBatchResponse> getWordBatch(
             @PathVariable @GameCode String gameCode,
             @RequestParam(defaultValue = "300") @Min(1) @Max(1000) int limit,
             @RequestParam(required = false) List<Long> exclude
     ) {
-        return ResponseEntity.ok(service.getWordsByCode(gameCode, exclude, limit));
+        return ResponseEntity.ok(service.getWordBatchByCode(gameCode, exclude, limit));
     }
 
     /**
@@ -103,7 +103,7 @@ public class CharadesController {
      * @return 최종 결과
      */
     @GetMapping("/{gameCode}/result")
-    public ResponseEntity<GameResultResponse> getResult(@PathVariable @GameCode String gameCode) {
-        return ResponseEntity.ok(service.getResultByCode(gameCode));
+    public ResponseEntity<GameResultResponse> getGameResult(@PathVariable @GameCode String gameCode) {
+        return ResponseEntity.ok(service.getGameResultByCode(gameCode));
     }
 }

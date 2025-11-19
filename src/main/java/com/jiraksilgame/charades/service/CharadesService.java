@@ -137,7 +137,7 @@ public class CharadesService {
                 .toList();
         gameCategoryRepo.saveAll(links);
 
-        return new CreateGameResponse(game, teams);
+        return new CreateGameResponse(game.getCode());
     }
 
     // 게임 정보 상세 조회
@@ -180,12 +180,12 @@ public class CharadesService {
 
     // 단어 배치(조회)
     @Transactional(readOnly = true)
-    public WordBatchResponse getWordsByCode(String code, List<Long> exclude, int limit) {
+    public WordBatchResponse getWordBatchByCode(String code, List<Long> exclude, int limit) {
         CharadesGame game = getGameByCodeOrThrow(code);
-        return getWords(game.getId(), exclude, limit);
+        return getWordBatch(game.getId(), exclude, limit);
     }
     @Transactional(readOnly = true)
-    public WordBatchResponse getWords(Long gameId, List<Long> exclude, int limit) {
+    public WordBatchResponse getWordBatch(Long gameId, List<Long> exclude, int limit) {
         List<Short> catIds = gameCategoryRepo.findCategoryIds(gameId);
         if (catIds.isEmpty()) return new WordBatchResponse(List.of());
 
@@ -286,12 +286,12 @@ public class CharadesService {
 
     // 결과 조회
     @Transactional(readOnly = true)
-    public GameResultResponse getResultByCode(String code) {
+    public GameResultResponse getGameResultByCode(String code) {
         CharadesGame game = getGameByCodeOrThrow(code);
-        return getResult(game);
+        return getGameResult(game);
     }
     @Transactional(readOnly = true)
-    public GameResultResponse getResult(CharadesGame game) {
+    public GameResultResponse getGameResult(CharadesGame game) {
         List<TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
                 .stream()
                 .map(TeamDto::fromEntity)
