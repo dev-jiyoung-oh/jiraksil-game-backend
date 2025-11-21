@@ -2,7 +2,9 @@ package com.jiraksilgame.charades.entity;
 
 import com.jiraksilgame.charades.domain.TurnOutcome;
 import com.jiraksilgame.charades.entity.enums.GameMode;
+import com.jiraksilgame.common.CommonConstants;
 import com.jiraksilgame.common.error.AppException;
+import com.jiraksilgame.common.util.CodeGenerator;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -16,7 +18,10 @@ import java.util.Objects;
 @Entity
 @Table(
     name = "CHARADES_TURNS",
-    uniqueConstraints = @UniqueConstraint(name = "uq_turn", columnNames = {"game_id", "team_id", "round_index"})
+    uniqueConstraints = @UniqueConstraint(
+        name = "uq_turn",
+        columnNames = {"game_id", "team_id", "round_index", "play_no"}
+    )
 )
 public class CharadesTurn {
 
@@ -24,8 +29,8 @@ public class CharadesTurn {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "code", unique = true, length = 32)
-    private String code; // optional external code
+    @Column(name = "code", unique = true, length = 32, nullable = false)
+    private String code;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_id", nullable = false)
@@ -37,6 +42,10 @@ public class CharadesTurn {
 
     @Column(name = "round_index", nullable = false)
     private Integer roundIndex;
+
+    @Column(name = "play_no", nullable = false)
+    private Integer playNo;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "mode", nullable = false, length = 16)
@@ -71,7 +80,7 @@ public class CharadesTurn {
 
 
     /** 턴 생성 (결과 적용 전) */
-    public static CharadesTurn create(CharadesGame game, CharadesTeam team, int roundIdx) {
+    public static CharadesTurn create(CharadesGame game, CharadesTeam team, int roundIdx, int playNo) {
         Objects.requireNonNull(game, "game must not be null");
         Objects.requireNonNull(team, "team must not be null");
         if (roundIdx < 0) throw AppException.badRequest("roundIdx must be >= 0");
@@ -80,6 +89,10 @@ public class CharadesTurn {
         t.setGame(game);
         t.setTeam(team);
         t.setRoundIndex(roundIdx);
+        t.setPlayNo(playNo);
+
+        // 턴 코드 자동 생성
+        t.setCode(CodeGenerator.randomCode(CommonConstants.GAME_CODE_LENGTH));
         
         t.setMode(game.getMode());
         t.setDurationSec(game.getMode() == GameMode.LIMITED ? game.getDurationSec() : null);

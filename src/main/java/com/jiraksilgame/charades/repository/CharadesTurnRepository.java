@@ -11,4 +11,12 @@ import java.util.List;
 public interface CharadesTurnRepository extends JpaRepository<CharadesTurn, Long> {
     @Query("select t.team.id, count(t) from CharadesTurn t where t.game.id = :gameId group by t.team.id")
     List<Object[]> countByTeam(@Param("gameId") Long gameId);
+
+    @Query("""
+        SELECT MAX(t.playNo) 
+        FROM CharadesTurn t 
+        WHERE t.game.id = :gameId
+    """)
+    Integer findMaxPlayNo(Long gameId);
+
 }

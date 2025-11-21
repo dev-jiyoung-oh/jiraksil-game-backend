@@ -201,16 +201,15 @@ public class CharadesService {
         return new WordBatchResponse(words);
     }
 
-    // 전체 플레이 일괄 저장
+    // 전체 턴 일괄 저장
     public void finalizeGameByCode(String code, FinalizeGameRequest req) {
         CharadesGame game = getGameByCodeOrThrow(code);
         finalizeGame(game, req);
     }
     public void finalizeGame(CharadesGame game, FinalizeGameRequest req) {
-        // 1) 게임이 이미 FINISHED 상태인지 체크
-        if (game.getStatus() == GameStatus.FINISHED) {
-            throw AppException.badRequest("Game already finalized");
-        }
+        // 1) 이번 저장(play)의 playNo 계산
+        Integer lastPlayNo = turnRepo.findMaxPlayNo(game.getId());
+        int nextPlayNo = (lastPlayNo == null ? 1 : lastPlayNo + 1);
 
         // 2) 팀 조회 (빠른 접근 위한 Map 생성)
         List<CharadesTeam> teams = teamRepo.findByGameId(game.getId());
@@ -230,7 +229,8 @@ public class CharadesService {
             CharadesTurn turn = CharadesTurn.create(
                     game,
                     team,
-                    turnReq.getRoundIndex()
+                    turnReq.getRoundIndex(),
+                    nextPlayNo
             );
 
             // 4-2) TurnOutcome 생성
