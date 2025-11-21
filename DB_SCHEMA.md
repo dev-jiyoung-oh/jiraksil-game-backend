@@ -102,6 +102,7 @@
 | game_id       | BIGINT                        | Y  |    | 게임 ID (FK)             |
 | team_id       | BIGINT                        | Y  |    | 팀 ID (FK)               |
 | round_index   | INT                           | Y  |    | 팀 기준 라운드 인덱스 (0부터) |
+| play_no       | INT                           | Y  |    | 게임 플레이 번호 (1부터) |
 | mode          | ENUM('LIMITED','UNTIL_CLEAR') | Y  |    | 턴 스냅샷 모드            |
 | duration_sec  | INT                           |    |    | LIMITED 전용 제한시간(초) |
 | target_count  | INT                           |    |    | UNTIL_CLEAR 전용 목표 문제 수 |
