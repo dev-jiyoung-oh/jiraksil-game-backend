@@ -235,8 +235,6 @@ public class CharadesService {
 
             // 4-2) TurnOutcome 생성
             TurnOutcome outcome = TurnOutcome.of(
-                    game.getMode(),
-                    turnReq.getTimeUsedSec(),
                     turnReq.getElapsedSec(),
                     turnReq.getCorrectCount(),
                     turnReq.getUsedPass()

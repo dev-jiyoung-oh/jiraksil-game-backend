@@ -72,11 +72,8 @@ public class CharadesTurn {
     @Column(name = "used_pass")
     private Integer usedPass;
 
-    @Column(name = "time_used_sec")
-    private Integer timeUsedSec; // LIMITED
-
     @Column(name = "elapsed_sec")
-    private Integer elapsedSec;  // UNTIL_CLEAR
+    private Integer elapsedSec;
 
 
     /** 턴 생성 (결과 적용 전) */
@@ -109,20 +106,12 @@ public class CharadesTurn {
     public void applyOutcome(TurnOutcome out, LocalDateTime startedAt, LocalDateTime endedAt) {
         if (out == null) return;
 
-        // 1) 시간 저장 (프론트 값 그대로)
+        // 1) 시간 저장
         this.setStartedAt(startedAt);
         this.setEndedAt(endedAt);
+        this.setElapsedSec(out.getElapsedSec());
 
-        // 2) 모드별 추가 필드
-        if (this.getMode() == GameMode.LIMITED) {
-            this.setTimeUsedSec(out.getTimeUsedSec());   // LIMITED 전용
-            this.setElapsedSec(null);
-        } else {
-            this.setElapsedSec(out.getElapsedSec());     // UNTIL_CLEAR 전용
-            this.setTimeUsedSec(null);
-        }
-
-        // 3) 정답/패스 카운트
+        // 2) 정답/패스 카운트
         this.setCorrectCount(out.getCorrectCount());
         this.setUsedPass(out.getUsedPass());
     }

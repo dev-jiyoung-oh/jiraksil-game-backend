@@ -25,11 +25,7 @@ public class FinalizeTurnRequest {
 
     @Min(1)
     @Max(1000)
-    private Integer timeUsedSec; // LIMITED
-
-    @Min(1)
-    @Max(1000)
-    private Integer elapsedSec;  // UNTIL_CLEAR
+    private Integer elapsedSec;
 
     private LocalDateTime startedAt;
     

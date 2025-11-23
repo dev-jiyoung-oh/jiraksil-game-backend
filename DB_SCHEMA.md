@@ -111,8 +111,7 @@
 | ended_at      | DATETIME                      |    |    | 턴 종료 시간              |
 | correct_count | INT                           |    |    | 맞힌 개수                 |
 | used_pass     | INT                           |    |    | 사용한 패스 수             |
-| time_used_sec | INT                           |    |    | LIMITED 모드 소요 시간 (= duration_sec - 남은 시간) |
-| elapsed_sec   | INT                           |    |    | UNTIL_CLEAR 모드 경과 시간 |
+| elapsed_sec   | INT                           |    |    | 경과 시간                 |
 
 ### 11. CHARADES_TURN_WORDS (턴 내 제시어)
 | 컬럼명       | 타입                   | 필수 | 고유 | 설명                       |
@@ -156,5 +155,5 @@
   - CHARADES_TEAMS (game_id, order_index) UNIQUE
   - CHARADES_GAME_CATEGORIES (game_id, category_id) UNIQUE
   - CHARADES_WORDS (category_id, text) UNIQUE
-  - CHARADES_TURNS (game_id, team_id, round_index) UNIQUE
+  - CHARADES_TURNS (game_id, team_id, round_index, play_no) UNIQUE
   - CHARADES_TURN_WORDS (turn_id, idx) UNIQUE
