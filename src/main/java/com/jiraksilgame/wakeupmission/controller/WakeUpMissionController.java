@@ -1,8 +1,8 @@
 package com.jiraksilgame.wakeupmission.controller;
 
+import com.jiraksilgame.common.dto.PasswordRequest;
 import com.jiraksilgame.common.validation.GameCode;
 import com.jiraksilgame.wakeupmission.dto.CreateWakeUpMissionRequest;
-import com.jiraksilgame.wakeupmission.dto.PasswordRequest;
 import com.jiraksilgame.wakeupmission.dto.WakeUpMissionResponse;
 import com.jiraksilgame.wakeupmission.service.WakeUpMissionService;
 
