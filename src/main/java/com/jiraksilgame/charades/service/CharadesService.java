@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -38,6 +39,7 @@ public class CharadesService {
     private final CharadesTurnRepository turnRepo;
     private final CharadesTurnWordRepository turnWordRepo;
 
+    private final BCryptPasswordEncoder passwordEncoder;
 
     // ========= 유틸(로컬 헬퍼) =========
 
@@ -70,18 +72,30 @@ public class CharadesService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Game not found: " + code));
     }
 
+    // 게임 code, password로 조회
+    private CharadesGame getGameByCodeAndPassword(String code, String password) {
+        CharadesGame game = gameRepo.findByCode(code)
+                .orElse(null);
+        if (game == null || !passwordEncoder.matches(password, game.getPasswordHash())) {
+            throw AppException.badRequest("게임이 존재하지 않거나 비밀번호가 일치하지 않습니다.");
+        }
+
+        return game;
+    }
+
     // 게임 생성(고유코드 생성)
-    private CharadesGame createAndPersistGameWithUniqueCode(CreateGameRequest.GameOptions opt) {
+    private CharadesGame createAndPersistGameWithUniqueCode(CreateGameRequest req, String passwordHash) {
         
         for (int attempt = 0; attempt < 3; attempt++) {
             String code = CodeGenerator.randomCode(CommonConstants.GAME_CODE_LENGTH);
             CharadesGame game = CharadesGame.create(
                     code,
-                    opt.getMode(),
-                    opt.getDurationSec(),
-                    opt.getTargetCount(),
-                    opt.getPassLimit(),
-                    opt.getRoundsPerTeam()
+                    req.getMode(),
+                    req.getDurationSec(),
+                    req.getTargetCount(),
+                    req.getPassLimit(),
+                    req.getRoundsPerTeam(),
+                    passwordHash
             );
 
             try {
@@ -103,13 +117,14 @@ public class CharadesService {
     // ========= API 로직 =========
 
     // 게임 생성
-    public CreateGameResponse createGame(CreateGameRequest req) {
-        CreateGameRequest.GameOptions opt = req.getOptions();
+    public GameInfoResponse createGame(CreateGameRequest req) {
+        // 1) 비밀번호 해시
+        String passwordHash = passwordEncoder.encode(req.getPassword());
 
-        // 1) 게임 생성
-        CharadesGame game = createAndPersistGameWithUniqueCode(opt);
+        // 2) 게임 생성
+        CharadesGame game = createAndPersistGameWithUniqueCode(req, passwordHash);
 
-        // 2) 팀 생성 (없으면 1팀)
+        // 3) 팀 생성 (없으면 1팀)
         List<String> names = (req.getTeamNames() == null || req.getTeamNames().isEmpty())
                 ? java.util.Collections.nCopies(1, "")
                 : req.getTeamNames();
@@ -122,8 +137,8 @@ public class CharadesService {
         }
         teamRepo.saveAll(teams);
 
-        // 3) 카테고리 매핑: 빈/ALL → 전체 활성화
-        List<String> codes = opt.getCategoryCodes();
+        // 4) 카테고리 매핑: 빈/ALL → 전체 활성화
+        List<String> codes = req.getCategoryCodes();
         List<Short> catIds;
         if (codes == null || codes.isEmpty() || codes.contains("ALL")) {
             catIds = categoryRepo.findByIsActiveTrue().stream().map(CharadesCategory::getId).toList();
@@ -137,17 +152,17 @@ public class CharadesService {
                 .toList();
         gameCategoryRepo.saveAll(links);
 
-        return new CreateGameResponse(game.getCode());
+        return getGameDetail(game);
     }
 
     // 게임 정보 상세 조회
     @Transactional(readOnly = true)
-    public GameDetailResponse getGameDetailByCode(String code) {
-        CharadesGame game = getGameByCodeOrThrow(code);
+    public GameInfoResponse getGameDetailByCodeWithPassword(String code, String password) {
+        CharadesGame game = getGameByCodeAndPassword(code, password);
         return getGameDetail(game);
     }
     @Transactional(readOnly = true)
-    public GameDetailResponse getGameDetail(CharadesGame game) {
+    public GameInfoResponse getGameDetail(CharadesGame game) {
         Long gameId = game.getId();
 
         List<CharadesTeam> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(gameId);
@@ -165,7 +180,7 @@ public class CharadesService {
                 .map(TeamDto::fromEntity)
                 .toList();
 
-        return GameDetailResponse.builder()
+        return GameInfoResponse.builder()
                 .code(game.getCode())
                 .mode(game.getMode())
                 .durationSec(game.getDurationSec())
@@ -174,7 +189,7 @@ public class CharadesService {
                 .roundsPerTeam(game.getRoundsPerTeam())
                 .status(status)
                 .teams(teamDtos)
-                .current(new GameDetailResponse.CurrentDto(p.teamIdx, p.roundIdx))
+                .current(new GameInfoResponse.CurrentDto(p.teamIdx, p.roundIdx))
                 .build();
     }
 

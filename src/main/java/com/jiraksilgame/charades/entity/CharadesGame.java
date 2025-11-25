@@ -46,6 +46,9 @@ public class CharadesGame {
     @Column(name = "status", nullable = false, length = 16)
     private GameStatus status;
 
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -61,7 +64,8 @@ public class CharadesGame {
             Integer durationSec,  // LIMITED일 때 필수(>0), 아니면 무시
             Integer targetCount,  // UNTIL_CLEAR일 때 필수(>0), 아니면 무시
             Integer passLimit,    // null → 기본 2
-            Integer roundsPerTeam // null → 기본 3
+            Integer roundsPerTeam, // null → 기본 3
+            String passwordHash
     ) {
         Objects.requireNonNull(mode, "mode must not be null");
         Objects.requireNonNull(code, "code must not be null");
@@ -86,6 +90,7 @@ public class CharadesGame {
         g.setPassLimit(passLimit != null ? passLimit : 2);
         g.setRoundsPerTeam(roundsPerTeam != null ? roundsPerTeam : 3);
         g.setStatus(GameStatus.READY);
+        g.setPasswordHash(passwordHash);
 
         return g;
     }

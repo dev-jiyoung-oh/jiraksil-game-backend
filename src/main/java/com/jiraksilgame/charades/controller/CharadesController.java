@@ -3,6 +3,7 @@ package com.jiraksilgame.charades.controller;
 import com.jiraksilgame.charades.dto.*;
 import com.jiraksilgame.charades.entity.CharadesCategory;
 import com.jiraksilgame.charades.service.CharadesService;
+import com.jiraksilgame.common.dto.PasswordRequest;
 import com.jiraksilgame.common.validation.GameCode;
 
 import jakarta.validation.Valid;
@@ -34,10 +35,10 @@ public class CharadesController {
      * @return 카테고리 리스트
      */
     @GetMapping("/categories")
-    public ResponseEntity<List<CategoryResponse>> getCategories() {
+    public ResponseEntity<List<CategoryDto>> getCategories() {
         List<CharadesCategory> categories = service.getActiveCategories();
-        List<CategoryResponse> response = categories.stream()
-            .map(c -> new CategoryResponse(c.getCode(), c.getName()))
+        List<CategoryDto> response = categories.stream()
+            .map(c -> new CategoryDto(c.getCode(), c.getName()))
             .toList();
         return ResponseEntity.ok(response);
     }
@@ -49,7 +50,7 @@ public class CharadesController {
      * @return 생성된 게임 정보
      */
     @PostMapping
-    public ResponseEntity<CreateGameResponse> createGame(@Valid @RequestBody CreateGameRequest req) {
+    public ResponseEntity<GameInfoResponse> createGame(@Valid @RequestBody CreateGameRequest req) {
         return ResponseEntity.ok(service.createGame(req));
     }
 
@@ -59,9 +60,12 @@ public class CharadesController {
      * @param gameCode 게임 코드
      * @return 게임 상세 정보
      */
-    @GetMapping("/{gameCode}")
-    public ResponseEntity<GameDetailResponse> getGameDetail(@PathVariable @GameCode String gameCode) {
-        return ResponseEntity.ok(service.getGameDetailByCode(gameCode));
+    @PostMapping("/{gameCode}")
+    public ResponseEntity<GameInfoResponse> getGameDetailWithPassword(
+            @PathVariable @GameCode String gameCode,
+            @Valid @RequestBody PasswordRequest req
+    ) {
+        return ResponseEntity.ok(service.getGameDetailByCodeWithPassword(gameCode, req.getPassword()));
     }
 
     /**
