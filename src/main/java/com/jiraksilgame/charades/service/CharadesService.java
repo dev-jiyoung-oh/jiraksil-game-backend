@@ -2,6 +2,7 @@ package com.jiraksilgame.charades.service;
 
 import com.jiraksilgame.charades.domain.TurnOutcome;
 import com.jiraksilgame.charades.dto.*;
+import com.jiraksilgame.charades.dto.GameManageResponse.GameCategoryDto;
 import com.jiraksilgame.charades.entity.*;
 import com.jiraksilgame.charades.entity.enums.GameStatus;
 import com.jiraksilgame.charades.repository.*;
@@ -201,7 +202,7 @@ public class CharadesService {
     }
     @Transactional(readOnly = true)
     public WordBatchResponse getWordBatch(Long gameId, List<Long> exclude, int limit) {
-        List<Short> catIds = gameCategoryRepo.findCategoryIds(gameId);
+        List<Short> catIds = gameCategoryRepo.findCategoryIdsByGameId(gameId);
         if (catIds.isEmpty()) return new WordBatchResponse(List.of());
 
         PageRequest page = PageRequest.of(0, Math.min(Math.max(limit,1), CharadesConstants.MAX_WORD_BATCH));
@@ -297,18 +298,49 @@ public class CharadesService {
         gameRepo.save(game);
     }
 
-    // 결과 조회
+    // 게임 관리 정보 조회
     @Transactional(readOnly = true)
-    public GameResultResponse getGameResultByCode(String code) {
-        CharadesGame game = getGameByCodeOrThrow(code);
-        return getGameResult(game);
-    }
-    @Transactional(readOnly = true)
-    public GameResultResponse getGameResult(CharadesGame game) {
-        List<TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
-                .stream()
+    public GameManageResponse getGameManageByCodeWithPassword(String code, String password) {
+
+        // 1) 비밀번호 검증 + 게임 조회
+        CharadesGame game = getGameByCodeAndPassword(code, password);
+
+        // 2) 팀 목록 조회
+        List<CharadesTeam> teams = teamRepo.findByGameId(game.getId());
+
+        List<TeamDto> teamDtos = teams.stream()
                 .map(TeamDto::fromEntity)
                 .toList();
-        return new GameResultResponse(game.getCode(), teams);
+
+        // 3) 선택된 카테고리 목록 조회
+        List<GameCategoryDto> selectedCategories = gameCategoryRepo.findByGameId(game.getId()).stream()
+                .map(gc -> new GameManageResponse.GameCategoryDto(gc.getCategory().getCode()))
+                .toList();
+
+        // 4) 전체 카테고리 마스터 조회
+        List<CategoryDto> categoryMaster = getActiveCategories().stream()
+                .map(c -> new CategoryDto(c.getCode(), c.getName()))
+                .toList();
+
+        // 5) 모든 턴 조회 (턴 단어는 추후 화면에서 턴 별로 단어 조회 API 호출)
+        List<TurnDto> turnDtos = turnRepo.findWithTeamByGameIdOrderByPlayNoAscRoundIndexAsc(game.getId()).stream()
+                .map(TurnDto::fromEntity)
+                .toList();
+
+        // 6) 최종 DTO 조립 후 반환
+        return new GameManageResponse(
+                game.getCode(),
+                game.getMode(),
+                game.getDurationSec(),
+                game.getTargetCount(),
+                game.getPassLimit(),
+                game.getRoundsPerTeam(),
+                game.getStatus(),
+                teamDtos,
+                selectedCategories,
+                categoryMaster,
+                turnDtos
+        );
     }
+
 }

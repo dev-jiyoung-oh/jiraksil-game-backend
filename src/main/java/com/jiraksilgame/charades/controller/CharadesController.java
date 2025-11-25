@@ -58,6 +58,7 @@ public class CharadesController {
      * 게임 정보 상세 조회
      *
      * @param gameCode 게임 코드
+     * @param req 비밀번호 요청
      * @return 게임 상세 정보
      */
     @PostMapping("/{gameCode}")
@@ -101,13 +102,17 @@ public class CharadesController {
     }
 
     /**
-     * 결과 조회
+     * 게임 관리 정보 조회
      *
      * @param gameCode 게임 코드
-     * @return 최종 결과
+     * @param req 비밀번호 요청
+     * @return 게임 관리 정보
      */
-    @GetMapping("/{gameCode}/result")
-    public ResponseEntity<GameResultResponse> getGameResult(@PathVariable @GameCode String gameCode) {
-        return ResponseEntity.ok(service.getGameResultByCode(gameCode));
+    @PostMapping("/{gameCode}/manage")
+    public ResponseEntity<GameManageResponse> getGameByIdWithPassword(
+            @PathVariable @GameCode String gameCode,
+            @Valid @RequestBody PasswordRequest req
+    ) {
+        return ResponseEntity.ok(service.getGameManageByCodeWithPassword(gameCode, req.getPassword()));
     }
 }
