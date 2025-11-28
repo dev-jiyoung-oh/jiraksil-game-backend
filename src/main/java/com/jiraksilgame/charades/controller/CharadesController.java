@@ -50,7 +50,7 @@ public class CharadesController {
      * @return 생성된 게임 정보
      */
     @PostMapping
-    public ResponseEntity<GameInfoResponse> createGame(@Valid @RequestBody CreateGameRequest req) {
+    public ResponseEntity<GameInfoDto> createGame(@Valid @RequestBody CreateGameRequest req) {
         return ResponseEntity.ok(service.createGame(req));
     }
 
@@ -62,7 +62,7 @@ public class CharadesController {
      * @return 게임 상세 정보
      */
     @PostMapping("/{gameCode}")
-    public ResponseEntity<GameInfoResponse> getGameDetailWithPassword(
+    public ResponseEntity<GameInfoDto> getGameDetailWithPassword(
             @PathVariable @GameCode String gameCode,
             @Valid @RequestBody PasswordRequest req
     ) {

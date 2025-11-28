@@ -19,6 +19,8 @@ public class TurnDto {
     private int correctCount;
     private int usedPass;
     private int elapsedSec;
+    private String startedAt;
+    private String endedAt;
     private List<TurnWordDto> words;
 
     public static TurnDto fromEntity(CharadesTurn t) {
@@ -31,6 +33,8 @@ public class TurnDto {
             t.getCorrectCount(),
             t.getUsedPass(),
             t.getElapsedSec(),
+            t.getStartedAt() != null ? t.getStartedAt().toString() : null,
+            t.getEndedAt() != null ? t.getEndedAt().toString() : null,
             null
         );
     }

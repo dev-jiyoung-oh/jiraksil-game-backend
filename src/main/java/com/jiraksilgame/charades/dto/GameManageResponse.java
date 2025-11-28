@@ -1,7 +1,5 @@
 package com.jiraksilgame.charades.dto;
 
-import com.jiraksilgame.charades.entity.enums.GameMode;
-import com.jiraksilgame.charades.entity.enums.GameStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,15 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 public class GameManageResponse {
 
-    private String code;
-    private GameMode mode;
-    private Integer durationSec; // LIMITED
-    private Integer targetCount; // UNTIL_CLEAR
-    private int passLimit;
-    private int roundsPerTeam;
-    private GameStatus status;
-
-    private List<TeamDto> teams;
+    private GameInfoDto gameInfo;
 
     /** 선택된 카테고리 목록 (게임-카테고리 매핑) */
     private List<GameCategoryDto> categories;

@@ -42,25 +42,7 @@ public class CharadesService {
 
     private final BCryptPasswordEncoder passwordEncoder;
 
-    // ========= 유틸(로컬 헬퍼) =========
 
-    private static final class Pointer {
-        final int teamIdx, roundIdx;
-        private Pointer(int teamIdx, int roundIdx) { this.teamIdx = teamIdx; this.roundIdx = roundIdx; }
-    }
-
-    private static Pointer nextPointer(List<CharadesTeam> teams, Map<Long,Integer> done) {
-        if (teams.isEmpty()) return new Pointer(0, 0);
-        int teamIdx = 0, roundIdx = Integer.MAX_VALUE;
-        for (int i = 0; i < teams.size(); i++) {
-            int c = done.getOrDefault(teams.get(i).getId(), 0);
-            if (c < roundIdx) { teamIdx = i; roundIdx = c; }
-        }
-        return new Pointer(teamIdx, roundIdx);
-    }
-    
-    // ========= 내부 로직 =========
-    
     // 사용 가능한 카테고리 목록 조회
     @Transactional(readOnly = true)
     public List<CharadesCategory> getActiveCategories() {
@@ -118,7 +100,7 @@ public class CharadesService {
     // ========= API 로직 =========
 
     // 게임 생성
-    public GameInfoResponse createGame(CreateGameRequest req) {
+    public GameInfoDto createGame(CreateGameRequest req) {
         // 1) 비밀번호 해시
         String passwordHash = passwordEncoder.encode(req.getPassword());
 
@@ -156,42 +138,20 @@ public class CharadesService {
         return getGameDetail(game);
     }
 
-    // 게임 정보 상세 조회
+    // 게임 상세 정보 조회
     @Transactional(readOnly = true)
-    public GameInfoResponse getGameDetailByCodeWithPassword(String code, String password) {
+    public GameInfoDto getGameDetailByCodeWithPassword(String code, String password) {
         CharadesGame game = getGameByCodeAndPassword(code, password);
         return getGameDetail(game);
     }
     @Transactional(readOnly = true)
-    public GameInfoResponse getGameDetail(CharadesGame game) {
-        Long gameId = game.getId();
-
-        List<CharadesTeam> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(gameId);
-
-        // 팀별 완료 턴 수
-        Map<Long,Integer> counts = turnRepo.countByTeam(gameId).stream()
-                .collect(Collectors.toMap(arr -> (Long)arr[0], arr -> ((Long)arr[1]).intValue()));
-
-        Pointer p = nextPointer(teams, counts);
-
-        boolean finished = teams.stream().allMatch(t -> counts.getOrDefault(t.getId(), 0) >= game.getRoundsPerTeam());
-        GameStatus status = finished ? GameStatus.FINISHED : game.getStatus();
-
-        List<TeamDto> teamDtos = teams.stream()
+    public GameInfoDto getGameDetail(CharadesGame game) {
+        List<TeamDto> teams = teamRepo.findByGameIdOrderByOrderIndexAsc(game.getId())
+                .stream()
                 .map(TeamDto::fromEntity)
                 .toList();
 
-        return GameInfoResponse.builder()
-                .code(game.getCode())
-                .mode(game.getMode())
-                .durationSec(game.getDurationSec())
-                .targetCount(game.getTargetCount())
-                .passLimit(game.getPassLimit())
-                .roundsPerTeam(game.getRoundsPerTeam())
-                .status(status)
-                .teams(teamDtos)
-                .current(new GameInfoResponse.CurrentDto(p.teamIdx, p.roundIdx))
-                .build();
+        return GameInfoDto.of(game, teams);
     }
 
     // 단어 배치(조회)
@@ -304,39 +264,26 @@ public class CharadesService {
 
         // 1) 비밀번호 검증 + 게임 조회
         CharadesGame game = getGameByCodeAndPassword(code, password);
+        GameInfoDto gameInfo = getGameDetail(game);
 
-        // 2) 팀 목록 조회
-        List<CharadesTeam> teams = teamRepo.findByGameId(game.getId());
-
-        List<TeamDto> teamDtos = teams.stream()
-                .map(TeamDto::fromEntity)
-                .toList();
-
-        // 3) 선택된 카테고리 목록 조회
+        // 2) 선택된 카테고리 목록 조회
         List<GameCategoryDto> selectedCategories = gameCategoryRepo.findByGameId(game.getId()).stream()
                 .map(gc -> new GameManageResponse.GameCategoryDto(gc.getCategory().getCode()))
                 .toList();
 
-        // 4) 전체 카테고리 마스터 조회
+        // 3) 전체 카테고리 마스터 조회
         List<CategoryDto> categoryMaster = getActiveCategories().stream()
                 .map(c -> new CategoryDto(c.getCode(), c.getName()))
                 .toList();
 
-        // 5) 모든 턴 조회 (턴 단어는 추후 화면에서 턴 별로 단어 조회 API 호출)
+        // 4) 모든 턴 조회 (턴 단어는 추후 화면에서 턴 별로 단어 조회 API 호출)
         List<TurnDto> turnDtos = turnRepo.findWithTeamByGameIdOrderByPlayNoAscRoundIndexAsc(game.getId()).stream()
                 .map(TurnDto::fromEntity)
                 .toList();
 
-        // 6) 최종 DTO 조립 후 반환
+        // 5) 최종 DTO 조립 후 반환
         return new GameManageResponse(
-                game.getCode(),
-                game.getMode(),
-                game.getDurationSec(),
-                game.getTargetCount(),
-                game.getPassLimit(),
-                game.getRoundsPerTeam(),
-                game.getStatus(),
-                teamDtos,
+                gameInfo,
                 selectedCategories,
                 categoryMaster,
                 turnDtos
