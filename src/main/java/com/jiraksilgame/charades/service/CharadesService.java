@@ -4,6 +4,7 @@ import com.jiraksilgame.charades.domain.TurnOutcome;
 import com.jiraksilgame.charades.dto.*;
 import com.jiraksilgame.charades.dto.GameManageResponse.GameCategoryDto;
 import com.jiraksilgame.charades.entity.*;
+import com.jiraksilgame.charades.entity.enums.GameMode;
 import com.jiraksilgame.charades.entity.enums.GameStatus;
 import com.jiraksilgame.charades.repository.*;
 import com.jiraksilgame.common.CommonConstants;
@@ -101,13 +102,26 @@ public class CharadesService {
 
     // 게임 생성
     public GameInfoDto createGame(CreateGameRequest req) {
-        // 1) 비밀번호 해시
+        // 1) 모드별 필수값 검증
+        if (req.getMode() == GameMode.UNTIL_CLEAR) {
+            if (req.getTargetCount() == null) {
+                throw AppException.badRequest("목표 달성 모드에서는 목표 정답 수 값이 필요합니다.");
+            }
+        }
+
+        if (req.getMode() == GameMode.LIMITED) {
+            if (req.getDurationSec() == null) {
+                throw AppException.badRequest("제한 시간 모드에서는 제한 시간(초) 값이 필요합니다.");
+            }
+        }
+
+        // 2) 비밀번호 해시
         String passwordHash = passwordEncoder.encode(req.getPassword());
 
-        // 2) 게임 생성
+        // 3) 게임 생성
         CharadesGame game = createAndPersistGameWithUniqueCode(req, passwordHash);
 
-        // 3) 팀 생성 (없으면 1팀)
+        // 4) 팀 생성 (없으면 1팀)
         List<String> names = (req.getTeamNames() == null || req.getTeamNames().isEmpty())
                 ? java.util.Collections.nCopies(1, "")
                 : req.getTeamNames();
@@ -120,7 +134,7 @@ public class CharadesService {
         }
         teamRepo.saveAll(teams);
 
-        // 4) 카테고리 매핑: 빈/ALL → 전체 활성화
+        // 5) 카테고리 매핑: 빈/ALL → 전체 활성화
         List<String> codes = req.getCategoryCodes();
         List<Short> catIds;
         if (codes == null || codes.isEmpty() || codes.contains("ALL")) {
