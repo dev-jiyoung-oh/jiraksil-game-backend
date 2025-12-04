@@ -21,7 +21,7 @@ import java.lang.annotation.*;
 @Pattern(regexp = CommonConstants.GAME_CODE_REGEX)
 public @interface GameCode {
     /** 오류 메시지 */
-    String message() default "Invalid game code";
+    String message() default "게임 코드 형식이 올바르지 않습니다. (A~Z, 0~9 조합의 12자리)";
     /** 검증 그룹 */
     Class<?>[] groups() default {};
     /** 페이로드 */

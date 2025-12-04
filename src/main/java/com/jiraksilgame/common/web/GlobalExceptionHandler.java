@@ -2,6 +2,7 @@ package com.jiraksilgame.common.web;
 
 import com.jiraksilgame.common.error.AppException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -79,11 +80,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorBody handleConstraint(ConstraintViolationException ex, HttpServletRequest req) {
-        String msg = ex.getConstraintViolations().stream()
-                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
-                .collect(Collectors.joining("; "));
+                
+        // 첫 번째 violation만 뽑음
+        String msg = ex.getConstraintViolations()
+                .stream()
+                .map(ConstraintViolation::getMessage)
+                .findFirst()
+                .orElse("잘못된 요청입니다.");
+
         logClient400("[Constraint]", req.getRequestURI(), msg);
-        return ErrorBody.of("BAD_REQUEST", msg.isBlank() ? "Constraint violation" : msg);
+
+        return ErrorBody.of("BAD_REQUEST", msg);
     }
 
     /**
